@@ -7,6 +7,7 @@ from torch.utils.data import sampler
 
 import torchvision.datasets as dset
 
+from PIL import Image
 import matplotlib.pyplot as plt
 import numpy as np
 
@@ -44,17 +45,32 @@ class ChunkSampler(sampler.Sampler):
         return self.num_samples
 
 
+class RandomFlip(object):
+    """Randomly horizontally flips the given PIL.Image with a probability of 0.5
+    """
+
+    def __call__(self, img, target):
+        if random.random() < 0.5:
+            if random.random() < 0.5:
+                return img.transpose(Image.FLIP_LEFT_RIGHT), target.transpose(Image.FLIP_LEFT_RIGHT)
+            return img.transpose(Image.FLIP_TOP_BOTTOM), target.transpose(Image.FLIP_TOP_BOTTOM)
+        return img, target
+
+
 class ImageWithMask(dset.ImageFolder):
+
+    def __setup__(self):
+        self.scale = T.Scale((512))
+        self.flip = RandomFlip()
+        self.tensorize = T.ToTensor()
 
     def __getitem__(self, index):
         path, target = self.imgs[index]
-        img = self.loader(path)
-        target = self.loader(target)
-        if self.transform is not None:
-            img = self.transform(img)
-            target = self.transform(target)
+        img, target = self.loader(path), self.loader(target)
+        img, target = self.scale(img), self.scale(target)
+        img, target = self.flip(img, target)
 
-        return img, target
+        return tensorize(img), tensorize(target)
 
 
 class ImageWithCounts(dset.ImageFolder):
