@@ -1,4 +1,6 @@
 from os.path import basename
+import shutil
+import random
 
 import torch
 import torch.nn as nn
@@ -6,12 +8,11 @@ from torch.autograd import Variable
 from torch.utils.data import sampler
 
 import torchvision.datasets as dset
+import torchvision.transforms as T
 
 from PIL import Image
 import matplotlib.pyplot as plt
 import numpy as np
-
-gpu_dtype = torch.cuda.FloatTensor
 
 
 def reset(m):
@@ -65,12 +66,13 @@ class ImageWithMask(dset.ImageFolder):
         self.tensorize = T.ToTensor()
 
     def __getitem__(self, index):
+        self.__setup__()
         path, target = self.imgs[index]
         img, target = self.loader(path), self.loader(target)
         img, target = self.scale(img), self.scale(target)
         img, target = self.flip(img, target)
 
-        return tensorize(img), tensorize(target)
+        return self.tensorize(img), self.tensorize(target)
 
 
 class ImageWithCounts(dset.ImageFolder):
@@ -85,7 +87,7 @@ class ImageWithCounts(dset.ImageFolder):
         return img, target
 
 
-def get_val_example(loader):
+def get_val_example(loader, gpu_dtype):
     for t, (x, y) in enumerate(loader):
         x_var = Variable(x.type(gpu_dtype))
         y_var = Variable(y.type(gpu_dtype))
@@ -110,6 +112,7 @@ def make_grid(imgs, padding=20):
 
 def save_epoch_image(x_var, y_var, model, epoch):
     fig, (ax1, ax2, ax3) = plt.subplots(3, 1, figsize=(8, 8))
+    model.eval()
 
     show(make_grid(x_var), ax1)
     show(make_grid(y_var), ax2)
@@ -118,20 +121,59 @@ def save_epoch_image(x_var, y_var, model, epoch):
     fig.savefig('./test_images/FPN_epoch_%s.png' % epoch, dpi=300)
 
 
-def train(loader_train, model, loss_fn, optimizer, num_epochs=1,
-          print_every=10):
-    for epoch in range(num_epochs):
-        model.train()
-        for t, (x, y) in enumerate(loader_train):
-            x_var = Variable(x.type(gpu_dtype))
-            y_var = Variable(y.type(gpu_dtype))
+def push_epoch_image(x_var, y_var, model, vis, epoch):
 
-            scores = model(x_var)
+    model.eval()
+    means, lvs = model(x_var)
+    means, lvs = means[-1], lvs[-1]
+    N, C, H, W = means.size()
 
-            loss = loss_fn(scores, y_var)
-            if (t + 1) % print_every == 0:
-                print('t = %d, loss = %.4f' % (t + 1, loss.data[0]))
+    resize = nn.AdaptiveAvgPool2d((H, W))
 
-            optimizer.zero_grad()
-            loss.backward()
-            optimizer.step()
+    for i in range(1):
+        canvas = np.zeros((3, 3, H, W))
+        canvas[0] = resize(x_var[i]).cpu().data.numpy()
+        canvas[1] = means[i].cpu().data.numpy().repeat(3, 0)
+        canvas[1] /= canvas[1].max()
+        canvas[2] = torch.exp(lvs[i]).cpu().data.numpy().repeat(3, 0)
+        vis.images(canvas, opts={'title': 'Epoch %s' % epoch})
+
+
+def train(loader_train, model, loss_fn, optimizer, gpu_dtype, print_every=10):
+    model.train()
+    for t, (x, y) in enumerate(loader_train):
+        x_var = Variable(x.type(gpu_dtype))
+        y_var = Variable(y.type(gpu_dtype))
+
+        scores = model(x_var)
+
+        loss = loss_fn(scores, y_var)
+        if np.isnan(loss.cpu().data[0]):
+            break
+        if (t + 1) % print_every == 0:
+            print('t = %d, loss = %.4f' % (t + 1, loss.data[0]))
+
+        optimizer.zero_grad()
+        loss.backward()
+        optimizer.step()
+
+
+def test(loader_test, model, loss_fn, gpu_dtype):
+    model.eval()
+
+    loss = 0.
+    for t, (x, y) in enumerate(loader_test):
+        x_var = Variable(x.type(gpu_dtype))
+        y_var = Variable(y.type(gpu_dtype))
+
+        scores = model(x_var)
+
+        loss += loss_fn(scores, y_var).cpu().data[0]
+    loss /= (t + 1)
+    return loss
+
+
+def save_checkpoint(state, is_best, filename='checkpoint.pth.tar'):
+    torch.save(state, filename)
+    if is_best:
+        shutil.copyfile(filename, 'model_best.pth.tar')

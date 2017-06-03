@@ -21,11 +21,11 @@ def tv_loss(img, tv_weight=1E-6):
     f = img[:, :, :-1, :-1]
     g = img[:, :, :-1, 1:]
     h = img[:, :, 1:, :-1]
-    return tv_weight * torch.sum((f - g) ** 2. + (f - h) ** 2.)
+    return tv_weight * torch.sum((f - g)**2. + (f - h)**2.)
 
 
-def bayes_loss(x, lv, y, eps=-6.):
-    t = nn.Threshold(eps, 0.)
+def bloss(x, lv, y, eps=1E-6):
+    t = nn.Threshold(-6., 0.)
     return torch.mean((torch.abs(y - x)) / (2. * torch.exp(t(lv))) + t(lv))
 
 
@@ -36,6 +36,6 @@ def fpn_loss(x, y):
         n, _, h, w = x_i.size()
         p_i = nn.AdaptiveAvgPool2d(output_size=(h, w))
         y_i = torch.sum(p_i(y), 1)
-        loss += bayes_loss(x_i, v_i, y_i)
+        loss += bloss(x_i, v_i, y_i)
         loss += tv_loss(x_i)
     return loss
