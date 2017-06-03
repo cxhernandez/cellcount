@@ -189,7 +189,7 @@ def compute_saliency_maps(X, y, model):
     saliency, _ = torch.max(torch.abs(x_var.grad.data), dim=1)
     saliency = saliency.squeeze()
 
-    return saliency
+    return Variable(saliency, requires_grad=False)
 
 
 def train(loader_train, model, loss_fn, optimizer, gpu_dtype, print_every=10):
