@@ -182,14 +182,14 @@ def compute_saliency_maps(X, y, model):
     model.eval()
 
     # Wrap the input tensors in Variables
-    N, C, H, W = X.size()
-    saliency = None
-    scores = model.forward(X)
-    loss = torch.abs(scores - y)
-    sum_score = torch.sum(loss)
-    saliency = sum_score.backward()
-    # absolute value and max over RGB channels
-    return X.grad.data.abs().max(dim=1)[0].resize_(N, H, W)
+    out = model(X)
+    loss = torch.mean(torch.abs(out - y))
+    loss.backward()
+
+    saliency, _ = torch.max(torch.abs(X.grad.data), dim=1)
+    saliency = saliency.squeeze()
+
+    return saliency
 
 
 def train(loader_train, model, loss_fn, optimizer, gpu_dtype, print_every=10):
