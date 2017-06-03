@@ -1,8 +1,11 @@
 import torch
 import torch.nn as nn
 
+from .utils import Flatten
 
-def ConvBNReLUPool(i, o, bn=True, kernel_size=(3, 3), stride=1, padding=0, p=0.5, pool=False, leaky=True):
+
+def ConvBNReLUPool(i, o, bn=True, kernel_size=(3, 3), stride=1, padding=0,
+                   p=0.5, pool=False, leaky=True):
     model = [nn.Conv2d(i, o, kernel_size=kernel_size,
                        stride=stride, padding=padding)]
 
@@ -31,7 +34,6 @@ class FPN(torch.nn.Module):
         """
         super(FPN, self).__init__()
 
-        # nn.Conv2d(3, 1, padding=1, kernel_size=(3, 3))
         self.conv_1 = ConvBNReLUPool(3, 1, padding=1, p=0.)
         self.h = h
         self.d = d
@@ -90,3 +92,41 @@ class FPN(torch.nn.Module):
             up_sampled_log_var.append(getattr(self, 'conv_3_%s' % i)(item))
 
         return up_sampled_mean, up_sampled_log_var
+
+
+class Counter(nn.Module):
+
+    def __init__(self, h, w, model_class='A', c=1):
+        super(Counter, self).__init__()
+
+        self.cfg = {
+            'A': [64, 'M', 128, 'M', 256, 256, 'M', 512, 512, 'M', 512, 512, 'M'],
+            'B': [64, 64, 'M', 128, 128, 'M', 256, 256, 'M', 512, 512, 'M', 512, 512, 'M'],
+            'D': [64, 64, 'M', 128, 128, 'M', 256, 256, 256, 'M', 512, 512, 512, 'M', 512, 512, 512, 'M'],
+            'E': [64, 64, 'M', 128, 128, 'M', 256, 256, 256, 256, 'M', 512, 512, 512, 512, 'M', 512, 512, 512, 512, 'M'],
+        }
+
+        in_channels = c
+
+        arch = []
+        for v in self.cfg[model_class]:
+            if v == 'M':
+                arch += [nn.MaxPool2d(kernel_size=2, stride=2)]
+                h = (h - 2) // 2 + 1
+                w = (w - 2) // 2 + 1
+            else:
+                conv2d = nn.Conv2d(in_channels, v, kernel_size=3, padding=1)
+                arch += [conv2d, nn.BatchNorm2d(v), nn.LeakyReLU(inplace=True)]
+                in_channels = v
+
+        print(h * w * in_channels)
+        arch += [Flatten(), nn.Linear(h * w * in_channels, 1024),
+                 nn.BatchNorm1d(1024), nn.LeakyReLU(inplace=True),
+                 nn.Linear(1024, 512), nn.BatchNorm1d(512),
+                 nn.LeakyReLU(inplace=True), nn.Linear(512, 1),
+                 nn.ReLU(inplace=True)]
+
+        self.model = nn.Sequential(*arch)
+
+    def forward(self, x):
+        return self.model(x)
