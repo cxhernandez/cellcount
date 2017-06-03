@@ -143,6 +143,7 @@ def push_epoch_image_count(x_var, y_var, model, vis, epoch):
     model.eval()
     means, lvs = model.fpn(x_var)
     count = model.counter((means, lvs)).cpu().data.numpy()
+    saliency = compute_saliency_maps(x_var, y_var, model)
 
     means, lvs = means[-1], lvs[-1]
     N, C, H, W = means.size()
@@ -150,16 +151,46 @@ def push_epoch_image_count(x_var, y_var, model, vis, epoch):
     resize = nn.AdaptiveAvgPool2d((H, W))
 
     for i in range(1):
-        canvas = np.zeros((3, 3, H, W))
+        canvas = np.zeros((4, 3, H, W))
         canvas[0] = resize(x_var[i]).cpu().data.numpy()
         canvas[1] = means[i].cpu().data.numpy().repeat(3, 0)
         canvas[1] /= canvas[1].max()
         canvas[2] = torch.exp(lvs[i]).cpu().data.numpy().repeat(3, 0)
+        canvas[3, 0, :, :] = resize(saliency[i]).cpu().data.numpy()
         vis.images(canvas,
                    opts={'title': 'Epoch %s:' % epoch,
-                         'caption': 'I think this image has %.4f cell(s). Truth is %s cells.' % (count[i][0],
-                                                                                                 y_var[i].cpu().data[0])}
+                         'caption': 'I think this image has %.4f cell(s). Truth is %s cell(s).' % (count[i][0],
+                                                                                                   int(y_var[i].cpu().data[0]))}
                    )
+
+
+def compute_saliency_maps(X, y, model):
+    """
+    Compute a class saliency map using the model for images X and labels y.
+
+    Input:
+    - X: Input images; Tensor of shape (N, 3, H, W)
+    - y: Labels for X; LongTensor of shape (N,)
+    - model: A pretrained CNN that will be used to compute the saliency map.
+
+    Returns:
+    - saliency: A Tensor of shape (N, H, W) giving the saliency maps for the input
+    images.
+    """
+    # Make sure the model is in "test" mode
+    model.eval()
+    x_var = Variable(X.data, requires_grad=True)
+    N, C, H, W = x_var.size()
+
+    # Wrap the input tensors in Variables
+    out = model(x_var)
+    loss = torch.mean(torch.abs(out - y))
+    loss.backward()
+
+    saliency, _ = torch.max(torch.abs(x_var.grad.data), dim=1)
+    saliency = saliency.squeeze()
+
+    return Variable(saliency, requires_grad=False).view(N, 1, H, W)
 
 
 def train(loader_train, model, loss_fn, optimizer, gpu_dtype, print_every=10):
