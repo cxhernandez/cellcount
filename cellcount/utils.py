@@ -75,7 +75,7 @@ class ImageWithMask(dset.ImageFolder):
         return self.tensorize(img), self.tensorize(target)
 
 
-class ImageWithCounts(dset.ImageFolder):
+class ImageWithCount(dset.ImageFolder):
 
     def __getitem__(self, index):
         path, target = self.imgs[index]
@@ -137,6 +137,29 @@ def push_epoch_image(x_var, y_var, model, vis, epoch):
         canvas[1] /= canvas[1].max()
         canvas[2] = torch.exp(lvs[i]).cpu().data.numpy().repeat(3, 0)
         vis.images(canvas, opts={'title': 'Epoch %s' % epoch})
+
+
+def push_epoch_image_count(x_var, y_var, model, vis, epoch):
+    model.eval()
+    means, lvs = model.fpn(x_var)
+    count = model.counter((means, lvs)).cpu().data.numpy()
+
+    means, lvs = means[-1], lvs[-1]
+    N, C, H, W = means.size()
+
+    resize = nn.AdaptiveAvgPool2d((H, W))
+
+    for i in range(1):
+        canvas = np.zeros((3, 3, H, W))
+        canvas[0] = resize(x_var[i]).cpu().data.numpy()
+        canvas[1] = means[i].cpu().data.numpy().repeat(3, 0)
+        canvas[1] /= canvas[1].max()
+        canvas[2] = torch.exp(lvs[i]).cpu().data.numpy().repeat(3, 0)
+        vis.images(canvas,
+                   opts={'title': 'Epoch %s:' % epoch,
+                         'caption': 'I think this image has %.4f cell(s). Truth is %s cells.' % (count[i][0],
+                                                                                                 y_var[i].cpu().data[0])}
+                   )
 
 
 def train(loader_train, model, loss_fn, optimizer, gpu_dtype, print_every=10):

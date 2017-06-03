@@ -119,7 +119,6 @@ class Counter(nn.Module):
                 arch += [conv2d, nn.BatchNorm2d(v), nn.LeakyReLU(inplace=True)]
                 in_channels = v
 
-        print(h * w * in_channels)
         arch += [Flatten(), nn.Linear(h * w * in_channels, 1024),
                  nn.BatchNorm1d(1024), nn.LeakyReLU(inplace=True),
                  nn.Linear(1024, 512), nn.BatchNorm1d(512),
@@ -129,4 +128,5 @@ class Counter(nn.Module):
         self.model = nn.Sequential(*arch)
 
     def forward(self, x):
-        return self.model(x)
+        means, lv = x
+        return self.model(means[-1])
