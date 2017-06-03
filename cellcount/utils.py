@@ -143,7 +143,7 @@ def push_epoch_image_count(x_var, y_var, model, vis, epoch):
     model.eval()
     means, lvs = model.fpn(x_var)
     count = model.counter((means, lvs)).cpu().data.numpy()
-    saliency = compute_saliency_maps(means, lvs, y_var, model)
+    saliency = compute_saliency_maps((means, lvs), y_var, model)
 
     means, lvs = means[-1], lvs[-1]
     N, C, H, W = means.size()
@@ -164,7 +164,7 @@ def push_epoch_image_count(x_var, y_var, model, vis, epoch):
                    )
 
 
-def compute_saliency_maps(X, lv, y, model):
+def compute_saliency_maps(X, y, model):
     """
     Compute a class saliency map using the model for images X and labels y.
 
@@ -182,6 +182,7 @@ def compute_saliency_maps(X, lv, y, model):
 
     # Wrap the input tensors in Variables
     out = model.counter(X)
+    X = X[0][-1]
     loss = torch.mean(torch.abs(out - y))
     loss.backward()
 
