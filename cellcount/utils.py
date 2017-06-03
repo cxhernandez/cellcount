@@ -143,7 +143,7 @@ def push_epoch_image_count(x_var, y_var, model, vis, epoch):
     model.eval()
     means, lvs = model.fpn(x_var)
     count = model.counter((means, lvs)).cpu().data.numpy()
-    saliency = compute_saliency_maps((means, lvs), y_var, model)
+    saliency = compute_saliency_maps(x_var, y_var, model)
 
     means, lvs = means[-1], lvs[-1]
     N, C, H, W = means.size()
@@ -181,8 +181,7 @@ def compute_saliency_maps(X, y, model):
     model.eval()
 
     # Wrap the input tensors in Variables
-    out = model.counter(X)
-    X = X[0][-1]
+    out = model(X)
     loss = torch.mean((out - y) ** 2.)
     loss.backward()
 
