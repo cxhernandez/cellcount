@@ -156,7 +156,7 @@ def push_epoch_image_count(x_var, y_var, model, vis, epoch):
         canvas[1] = means[i].cpu().data.numpy().repeat(3, 0)
         canvas[1] /= canvas[1].max()
         canvas[2] = torch.exp(lvs[i]).cpu().data.numpy().repeat(3, 0)
-        canvas[3, 0, :, :] = resize(saliency[i]).cpu().numpy()
+        canvas[3, 0, :, :] = resize(saliency[i]).cpu().data.numpy()
         vis.images(canvas,
                    opts={'title': 'Epoch %s:' % epoch,
                          'caption': 'I think this image has %.4f cell(s). Truth is %s cell(s).' % (count[i][0],
