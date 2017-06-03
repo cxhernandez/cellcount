@@ -183,7 +183,7 @@ def compute_saliency_maps(X, y, model):
     # Wrap the input tensors in Variables
     out = model.counter(X)
     X = X[0][-1]
-    loss = torch.mean(torch.abs(out - y))
+    loss = torch.mean((out - y) ** 2.)
     loss.backward()
 
     saliency, _ = torch.max(torch.abs(X.grad.data), dim=1)
