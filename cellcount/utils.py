@@ -185,7 +185,7 @@ def compute_saliency_maps(X, y, model):
     N, C, H, W = X.size()
     saliency = None
     scores = model.forward(X)
-    loss = scores.gather(1, y.view(-1, 1)).squeeze()
+    loss = torch.abs(scores - y)
     sum_score = torch.sum(loss)
     saliency = sum_score.backward()
     # absolute value and max over RGB channels
