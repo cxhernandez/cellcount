@@ -180,6 +180,7 @@ def compute_saliency_maps(X, y, model):
     # Make sure the model is in "test" mode
     model.eval()
     x_var = Variable(X.data, requires_grad=True)
+    N, C, H, W = x_var.size()
 
     # Wrap the input tensors in Variables
     out = model(x_var)
@@ -189,7 +190,7 @@ def compute_saliency_maps(X, y, model):
     saliency, _ = torch.max(torch.abs(x_var.grad.data), dim=1)
     saliency = saliency.squeeze()
 
-    return Variable(saliency, requires_grad=False)
+    return Variable(saliency, requires_grad=False).view(N, 1, H, W)
 
 
 def train(loader_train, model, loss_fn, optimizer, gpu_dtype, print_every=10):
