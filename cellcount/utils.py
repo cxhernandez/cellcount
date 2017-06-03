@@ -179,13 +179,14 @@ def compute_saliency_maps(X, y, model):
     """
     # Make sure the model is in "test" mode
     model.eval()
+    x_var = Variable(X.data, requires_grad=True)
 
     # Wrap the input tensors in Variables
-    out = model(X)
-    loss = torch.mean((out - y) ** 2.)
+    out = model(x_var)
+    loss = torch.mean(torch.abs(out - y))
     loss.backward()
 
-    saliency, _ = torch.max(torch.abs(X.grad.data), dim=1)
+    saliency, _ = torch.max(torch.abs(x_var.grad.data), dim=1)
     saliency = saliency.squeeze()
 
     return saliency
