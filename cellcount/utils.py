@@ -182,11 +182,11 @@ def compute_saliency_maps(X, y, model):
     """
     # Make sure the model is in "test" mode
     model.eval()
-    x_var, lv_var = Variable(X.data, requires_grad=True)
+    x_var = Variable(X.data, requires_grad=True)
     N, C, H, W = x_var.size()
 
     # Wrap the input tensors in Variables
-    out = model(x_var)
+    out, _ = model(x_var)
     loss = torch.mean(torch.abs(out - y))
     loss.backward()
 
