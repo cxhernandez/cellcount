@@ -235,7 +235,13 @@ def test(loader_test, model, loss_fn, gpu_dtype):
     return loss
 
 
-def save_checkpoint(state, is_best, filename='checkpoint.pth.tar'):
+def save_checkpoint(state, is_best, name=''):
+    filename = 'checkpoint.pth.tar'
+    best = 'model_best.pth.tar'
+    if name:
+        filename = '_'.join([name, filename])
+        best = '_'.join([best, filename])
+
     torch.save(state, filename)
     if is_best:
-        shutil.copyfile(filename, 'model_best.pth.tar')
+        shutil.copyfile(filename, best)
