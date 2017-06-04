@@ -152,7 +152,7 @@ def push_epoch_image_count(x_var, y_var, model, vis, epoch):
 
     resize = nn.AdaptiveAvgPool2d((H, W))
 
-    for i in [random.randint(0, N)]:
+    for i in [random.randint(0, N-1)]:
         canvas = np.zeros((4, 3, H, W))
         canvas[0] = resize(x_var[i]).cpu().data.numpy()
         canvas[1] = means[i].cpu().data.numpy().repeat(3, 0)
