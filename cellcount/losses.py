@@ -16,12 +16,11 @@ def tv_loss(img, tv_weight=1E-6):
     - loss: PyTorch Variable holding a scalar giving the total variation loss
       for img weighted by tv_weight.
     """
-    # Your implementation should be vectorized and not require any loops!
     N, C, H, W = img.size()
     f = img[:, :, :-1, :-1]
     g = img[:, :, :-1, 1:]
     h = img[:, :, 1:, :-1]
-    return tv_weight * torch.sum((f - g)**2. + (f - h)**2.)
+    return tv_weight * torch.sum((f - g) ** 2. + (f - h) ** 2.)
 
 
 def bloss(x, lv, y, eps=1E-6):
@@ -39,3 +38,8 @@ def fpn_loss(x, y):
         loss += bloss(x_i, v_i, y_i)
         loss += tv_loss(x_i)
     return loss
+
+
+def counter_loss(x, y):
+    x, lv = x
+    return bloss(x, lv, y)

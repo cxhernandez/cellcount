@@ -119,14 +119,23 @@ class Counter(nn.Module):
                 arch += [conv2d, nn.BatchNorm2d(v), nn.LeakyReLU(inplace=True)]
                 in_channels = v
 
-        arch += [Flatten(), nn.Linear(h * w * in_channels, 1024),
-                 nn.BatchNorm1d(1024), nn.LeakyReLU(inplace=True),
-                 nn.Linear(1024, 512), nn.BatchNorm1d(512),
-                 nn.LeakyReLU(inplace=True), nn.Linear(512, 1),
-                 nn.ReLU(inplace=True)]
+        self.vgg = nn.Sequential(*arch)
 
-        self.model = nn.Sequential(*arch)
+        self.fc_mean = nn.Sequential(Flatten(), nn.Linear(h * w * in_channels, 1024),
+                                     nn.BatchNorm1d(1024), nn.LeakyReLU(
+                                         inplace=True),
+                                     nn.Linear(1024, 512), nn.BatchNorm1d(512),
+                                     nn.LeakyReLU(inplace=True),
+                                     nn.Linear(512, 1), nn.ReLU(inplace=True))
+
+        self.fc_lvar = nn.Sequential(Flatten(), nn.Linear(h * w * in_channels, 1024),
+                                     nn.BatchNorm1d(1024), nn.LeakyReLU(
+                                         inplace=True),
+                                     nn.Linear(1024, 512), nn.BatchNorm1d(512),
+                                     nn.LeakyReLU(inplace=True),
+                                     nn.Linear(512, 1))
 
     def forward(self, x):
         means, lv = x
-        return self.model(means[-1])
+        out = self.vgg(means[-1])
+        return self.fc_mean(out), self.fc_lvar(out)

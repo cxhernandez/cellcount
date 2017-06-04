@@ -13,16 +13,17 @@ from cellcount.utils import (ChunkSampler, ImageWithCount, train, test,
                              get_val_example, push_epoch_image_count,
                              save_checkpoint, reset)
 from cellcount.models import FPN, Counter
+from cellcount.losses import counter_loss
 
 vis = visdom.Visdom(port=8080)
 
 
 BBBC = '/home/cxh/playground/bbbc/'
-NUM_TRAIN = 2000
-NUM_VAL = 500
-BATCH_SIZE = 2
+NUM_TRAIN = 4000
+NUM_VAL = 1000
+BATCH_SIZE = 5
 gpu_dtype = torch.cuda.FloatTensor
-transform = T.Compose([T.Scale((512)), T.RandomHorizontalFlip(), T.ToTensor()])
+transform = T.Compose([T.Scale((256)), T.RandomHorizontalFlip(), T.ToTensor()])
 
 train_data = ImageWithCount(join(BBBC, 'BBBC005_v1_images/'),
                             transform=transform)
@@ -46,21 +47,24 @@ count = Counter(h // 2, w // 2).type(gpu_dtype)
 
 model = nn.Sequential(OrderedDict([('fpn', fpn), ('counter', count)]))
 
-lr = 1e-3
+lr = 1e-4
 epochs = 100
-loss_fn = nn.MSELoss()
+loss_fn = counter_loss
+val_loss_fn = nn.MSELoss()
 best_loss = 1E6
-optimizer = optim.SGD(model.counter.parameters(), lr=lr, momentum=0.9)
+optimizer = optim.Adam(model.counter.parameters(), lr=lr)
 for epoch in range(epochs):
     print('epoch: %s' % epoch)
 
     if epoch > 0 and (epoch % 20 == 0):
         for param_group in optimizer.param_groups:
-            param_group['lr'] *= .75
+            param_group['lr'] *= .5
 
     train(loader_train, model, loss_fn, optimizer, gpu_dtype)
-    val_loss = test(loader_val, model, loss_fn, gpu_dtype)
+    val_loss = test(loader_val, model, val_loss_fn, gpu_dtype)
     is_best = val_loss < best_loss
+    if is_best:
+        best_loss = val_loss
     save_checkpoint({
         'epoch': epoch,
         'model': model.state_dict(),

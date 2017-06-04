@@ -61,7 +61,7 @@ class RandomFlip(object):
 class ImageWithMask(dset.ImageFolder):
 
     def __setup__(self):
-        self.scale = T.Scale((512))
+        self.scale = T.Scale((256))
         self.flip = RandomFlip()
         self.tensorize = T.ToTensor()
 
@@ -142,7 +142,9 @@ def push_epoch_image(x_var, y_var, model, vis, epoch):
 def push_epoch_image_count(x_var, y_var, model, vis, epoch):
     model.eval()
     means, lvs = model.fpn(x_var)
-    count = model.counter((means, lvs)).cpu().data.numpy()
+    count, lv = model.counter((means, lvs))
+    count = count.cpu().data.numpy()
+    var = torch.exp(lv).cpu().data.numpy()
     saliency = compute_saliency_maps(x_var, y_var, model)
 
     means, lvs = means[-1], lvs[-1]
@@ -157,11 +159,13 @@ def push_epoch_image_count(x_var, y_var, model, vis, epoch):
         canvas[1] /= canvas[1].max()
         canvas[2] = torch.exp(lvs[i]).cpu().data.numpy().repeat(3, 0)
         canvas[3, 0, :, :] = resize(saliency[i]).cpu().data.numpy()
+        canvas[3] /= canvas[3].max()
+        message = 'I think this image has %.4f ± %.4f cell(s). Truth is %s cell(s).'
         vis.images(canvas,
                    opts={'title': 'Epoch %s:' % epoch,
-                         'caption': 'I think this image has %.4f cell(s). Truth is %s cell(s).' % (count[i][0],
-                                                                                                   int(y_var[i].cpu().data[0]))}
-                   )
+                         'caption': message % (count[i][0], 2. * var[i][0] ** 0.5,
+                                               int(y_var[i].cpu().data[0]))
+                         })
 
 
 def compute_saliency_maps(X, y, model):
@@ -183,7 +187,7 @@ def compute_saliency_maps(X, y, model):
     N, C, H, W = x_var.size()
 
     # Wrap the input tensors in Variables
-    out = model(x_var)
+    out, _ = model(x_var)
     loss = torch.mean(torch.abs(out - y))
     loss.backward()
 
@@ -222,8 +226,12 @@ def test(loader_test, model, loss_fn, gpu_dtype):
 
         scores = model(x_var)
 
+        if isinstance(scores, tuple):
+            scores, _ = scores
+
         loss += loss_fn(scores, y_var).cpu().data[0]
     loss /= (t + 1)
+    print('validation loss = %.4f' % loss)
     return loss
 
 
