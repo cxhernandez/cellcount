@@ -23,7 +23,7 @@ NUM_TRAIN = 4000
 NUM_VAL = 1000
 BATCH_SIZE = 5
 gpu_dtype = torch.cuda.FloatTensor
-transform = T.Compose([T.Scale((512)), T.RandomHorizontalFlip(), T.ToTensor()])
+transform = T.Compose([T.Scale((256)), T.RandomHorizontalFlip(), T.ToTensor()])
 
 train_data = ImageWithCount(join(BBBC, 'BBBC005_v1_images/'),
                             transform=transform)

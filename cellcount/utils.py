@@ -61,7 +61,7 @@ class RandomFlip(object):
 class ImageWithMask(dset.ImageFolder):
 
     def __setup__(self):
-        self.scale = T.Scale((512))
+        self.scale = T.Scale((256))
         self.flip = RandomFlip()
         self.tensorize = T.ToTensor()
 
