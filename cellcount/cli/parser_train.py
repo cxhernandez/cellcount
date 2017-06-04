@@ -53,7 +53,7 @@ def func(args, parser):
     if args.cont and isfile('checkpoint.pth.tar'):
         print('Continuing from previous checkpoint...')
         checkpoint = torch.load('model_best.pth.tar')
-        fpn.load_state_dict(checkpoint['model'])
+        model.load_state_dict(checkpoint['model'])
         optimizer = optim.Adam(model.counter.parameters(), lr=lr)
         optimizer.load_state_dict(checkpoint['optimizer'])
         best_loss = checkpoint['avg_val_loss']
