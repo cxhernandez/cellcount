@@ -162,7 +162,7 @@ def push_epoch_image_count(x_var, y_var, model, vis, epoch):
         message = 'I think this image has %.4f ± %.4f cell(s). Truth is %s cell(s).'
         vis.images(canvas,
                    opts={'title': 'Epoch %s:' % epoch,
-                         'caption': message % (count[i][0], var[i][0],
+                         'caption': message % (count[i][0], 2. * var[i][0] ** 0.5,
                                                int(y_var[i].cpu().data[0]))
                          })
 

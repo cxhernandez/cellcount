@@ -125,17 +125,15 @@ class Counter(nn.Module):
                                      nn.BatchNorm1d(1024), nn.LeakyReLU(
                                          inplace=True),
                                      nn.Linear(1024, 512), nn.BatchNorm1d(512),
-                                     nn.LeakyReLU(
-                                         inplace=True), nn.Linear(512, 1),
-                                     nn.ReLU(inplace=True))
+                                     nn.LeakyReLU(inplace=True),
+                                     nn.Linear(512, 1), nn.ReLU(inplace=True))
 
         self.fc_lvar = nn.Sequential(Flatten(), nn.Linear(h * w * in_channels, 1024),
                                      nn.BatchNorm1d(1024), nn.LeakyReLU(
                                          inplace=True),
                                      nn.Linear(1024, 512), nn.BatchNorm1d(512),
-                                     nn.LeakyReLU(
-                                         inplace=True), nn.Linear(512, 1),
-                                     nn.ReLU(inplace=True))
+                                     nn.LeakyReLU(inplace=True),
+                                     nn.Linear(512, 1))
 
     def forward(self, x):
         means, lv = x
