@@ -231,7 +231,7 @@ def test(loader_test, model, loss_fn, gpu_dtype):
 
         loss += loss_fn(scores, y_var).cpu().data[0]
     loss /= (t + 1)
-    print('validation loss = %.4f' % (t + 1, loss))
+    print('validation loss = %.4f' % loss)
     return loss
 
 
