@@ -51,7 +51,7 @@ lr = 1e-4
 epochs = 100
 loss_fn = counter_loss
 best_loss = 1E6
-optimizer = optim.SGD(model.counter.parameters(), lr=lr, momentum=0.9)
+optimizer = optim.Adam(model.counter.parameters(), lr=lr)
 for epoch in range(epochs):
     print('epoch: %s' % epoch)
 
