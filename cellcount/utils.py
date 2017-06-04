@@ -226,6 +226,9 @@ def test(loader_test, model, loss_fn, gpu_dtype):
 
         scores = model(x_var)
 
+        if isinstance(scores, tuple):
+            scores, _ = scores
+
         loss += loss_fn(scores, y_var).cpu().data[0]
     loss /= (t + 1)
     return loss

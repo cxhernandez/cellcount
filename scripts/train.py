@@ -50,6 +50,7 @@ model = nn.Sequential(OrderedDict([('fpn', fpn), ('counter', count)]))
 lr = 1e-4
 epochs = 100
 loss_fn = counter_loss
+val_loss_fn = nn.MSELoss()
 best_loss = 1E6
 optimizer = optim.Adam(model.counter.parameters(), lr=lr)
 for epoch in range(epochs):
@@ -60,7 +61,7 @@ for epoch in range(epochs):
             param_group['lr'] *= .75
 
     train(loader_train, model, loss_fn, optimizer, gpu_dtype)
-    val_loss = test(loader_val, model, loss_fn, gpu_dtype)
+    val_loss = test(loader_val, model, val_loss_fn, gpu_dtype)
     is_best = val_loss < best_loss
     save_checkpoint({
         'epoch': epoch,
