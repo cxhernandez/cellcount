@@ -78,8 +78,8 @@ def func(args, parser):
 
 
 def configure_parser(sub_parsers):
-    help = 'Train autoencoder'
-    p = sub_parsers.add_parser('train', description=help, help=help,
+    help = 'Train FPN'
+    p = sub_parsers.add_parser('train_fpn', description=help, help=help,
                                formatter_class=ArgumentDefaultsHelpFormatter)
     p.add_argument('--dataset', type=str, help="Path to BBBC dataset",
                    required=True)
