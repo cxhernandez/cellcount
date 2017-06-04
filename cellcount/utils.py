@@ -182,7 +182,7 @@ def compute_saliency_maps(X, y, model):
     """
     # Make sure the model is in "test" mode
     model.eval()
-    x_var = Variable(X.data, requires_grad=True)
+    x_var, lv_var = Variable(X.data, requires_grad=True)
     N, C, H, W = x_var.size()
 
     # Wrap the input tensors in Variables
