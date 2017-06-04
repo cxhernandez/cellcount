@@ -58,11 +58,13 @@ for epoch in range(epochs):
 
     if epoch > 0 and (epoch % 20 == 0):
         for param_group in optimizer.param_groups:
-            param_group['lr'] *= .75
+            param_group['lr'] *= .5
 
     train(loader_train, model, loss_fn, optimizer, gpu_dtype)
     val_loss = test(loader_val, model, val_loss_fn, gpu_dtype)
     is_best = val_loss < best_loss
+    if is_best:
+        best_loss = val_loss
     save_checkpoint({
         'epoch': epoch,
         'model': model.state_dict(),
