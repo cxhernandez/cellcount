@@ -39,3 +39,8 @@ def fpn_loss(x, y):
         loss += bloss(x_i, v_i, y_i)
         loss += tv_loss(x_i)
     return loss
+
+
+def counter_loss(x, y):
+    x, lv = x
+    return bloss(x, lv, y)

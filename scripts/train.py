@@ -13,6 +13,7 @@ from cellcount.utils import (ChunkSampler, ImageWithCount, train, test,
                              get_val_example, push_epoch_image_count,
                              save_checkpoint, reset)
 from cellcount.models import FPN, Counter
+from cellcount.losses import counter_loss
 
 vis = visdom.Visdom(port=8080)
 
@@ -46,9 +47,9 @@ count = Counter(h // 2, w // 2).type(gpu_dtype)
 
 model = nn.Sequential(OrderedDict([('fpn', fpn), ('counter', count)]))
 
-lr = 1e-3
+lr = 1e-4
 epochs = 100
-loss_fn = nn.MSELoss()
+loss_fn = counter_loss
 best_loss = 1E6
 optimizer = optim.SGD(model.counter.parameters(), lr=lr, momentum=0.9)
 for epoch in range(epochs):
