@@ -22,9 +22,8 @@ def main():
         dest='cmd',
     )
 
-    parser_download.configure_parser(sub_parsers)
+    parser_train_fpn.configure_parser(sub_parsers)
     parser_train.configure_parser(sub_parsers)
-    parser_test.configure_parser(sub_parsers)
 
     if len(sys.argv) == 1:
         sys.argv.append('-h')
