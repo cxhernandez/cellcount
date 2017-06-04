@@ -87,9 +87,9 @@ def configure_parser(sub_parsers):
                    default=1)
     p.add_argument('--batch-size', type=int, help="Batch size", default=5)
     p.add_argument('--learning-rate', type=float, help="Learning rate",
-                   default=1E-3)
+                   default=1E-4)
     p.add_argument('--cont', help="Continue from saved state",
                    action='store_true')
-    p.add_argument('--display', help="Continue from saved state",
+    p.add_argument('--display', help="Display via Visdom",
                    action='store_true')
     p.set_defaults(func=func)

@@ -100,6 +100,6 @@ def configure_parser(sub_parsers):
                    default=1E-4)
     p.add_argument('--cont', help="Continue from saved state",
                    action='store_true')
-    p.add_argument('--display', help="Continue from saved state",
+    p.add_argument('--display', help="Display via Visdom",
                    action='store_true')
     p.set_defaults(func=func)
