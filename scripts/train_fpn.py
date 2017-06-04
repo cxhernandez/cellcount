@@ -16,9 +16,9 @@ vis = visdom.Visdom(port=8080)
 
 
 BBBC = '/home/cxh/playground/bbbc/'
-NUM_TRAIN = 1000
-NUM_VAL = 200
-BATCH_SIZE = 2
+NUM_TRAIN = 480
+NUM_VAL = 120
+BATCH_SIZE = 5
 gpu_dtype = torch.cuda.FloatTensor
 
 train_data = ImageWithMask(join(BBBC, 'BBBC005_v1_ground_truth/'))
@@ -39,7 +39,7 @@ fpn = FPN(h, w).type(gpu_dtype)
 lr = 1e-3
 epochs = 100
 best_loss = 1E6
-optimizer = optim.SGD(fpn.parameters(), lr=lr, momentum=0.9)
+optimizer = optim.Adam(fpn.parameters(), lr=lr)
 for epoch in range(epochs):
     print('epoch: %s' % epoch)
 

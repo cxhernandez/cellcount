@@ -19,9 +19,9 @@ vis = visdom.Visdom(port=8080)
 
 
 BBBC = '/home/cxh/playground/bbbc/'
-NUM_TRAIN = 2000
-NUM_VAL = 500
-BATCH_SIZE = 2
+NUM_TRAIN = 4000
+NUM_VAL = 1000
+BATCH_SIZE = 5
 gpu_dtype = torch.cuda.FloatTensor
 transform = T.Compose([T.Scale((512)), T.RandomHorizontalFlip(), T.ToTensor()])
 
