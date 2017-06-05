@@ -152,7 +152,7 @@ def push_epoch_image_count(x_var, y_var, model, vis, epoch):
 
     resize = nn.AdaptiveAvgPool2d((H, W))
 
-    for i in range(1):
+    for i in [random.randint(0, N-1)]:
         canvas = np.zeros((4, 3, H, W))
         canvas[0] = resize(x_var[i]).cpu().data.numpy()
         canvas[1] = means[i].cpu().data.numpy().repeat(3, 0)
@@ -235,7 +235,13 @@ def test(loader_test, model, loss_fn, gpu_dtype):
     return loss
 
 
-def save_checkpoint(state, is_best, filename='checkpoint.pth.tar'):
+def save_checkpoint(state, is_best, name=''):
+    filename = 'checkpoint.pth.tar'
+    best = 'model_best.pth.tar'
+    if name:
+        filename = '_'.join([name, filename])
+        best = '_'.join([best, filename])
+
     torch.save(state, filename)
     if is_best:
-        shutil.copyfile(filename, 'model_best.pth.tar')
+        shutil.copyfile(filename, best)
