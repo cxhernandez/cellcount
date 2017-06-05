@@ -45,9 +45,6 @@ def func(args, parser):
         print('Continuing from previous checkpoint...')
         checkpoint = torch.load('model_best.pth.tar')
         model.load_state_dict(checkpoint['model'])
-        optimizer = optim.Adam(model.counter.parameters(), lr=lr)
-        optimizer.load_state_dict(checkpoint['optimizer'])
-        best_loss = checkpoint['avg_val_loss']
 
         model.eval()
 
@@ -59,9 +56,6 @@ def func(args, parser):
 
             if t == 10:
                 break
-
-
-
 
 
 def configure_parser(sub_parsers):
