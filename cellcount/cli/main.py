@@ -3,7 +3,7 @@ from __future__ import print_function, absolute_import, division
 import sys
 import argparse
 
-from . import parser_train_fpn, parser_train
+from . import parser_train_fpn, parser_train, parser_test
 
 NAME = 'cellcount'
 VERSION = '0.1a'
@@ -24,6 +24,7 @@ def main():
 
     parser_train_fpn.configure_parser(sub_parsers)
     parser_train.configure_parser(sub_parsers)
+    parser_test.configure_parser(sub_parsers)
 
     if len(sys.argv) == 1:
         sys.argv.append('-h')
