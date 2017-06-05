@@ -12,6 +12,8 @@ def func(args, parser):
         from torch.utils.data import DataLoader
         import torchvision.transforms as T
 
+        from torch.autograd import Variable
+
         import visdom
 
         from cellcount.utils import (ChunkSampler, ImageWithCount, train, test,
