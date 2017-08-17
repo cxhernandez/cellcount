@@ -3,7 +3,7 @@ from __future__ import print_function, absolute_import, division
 import sys
 import argparse
 
-from . import parser_train_fpn, parser_train
+from . import parser_train_fpn, parser_train, parser_download
 
 NAME = 'cellcount'
 VERSION = '0.1a'
@@ -22,6 +22,7 @@ def main():
         dest='cmd',
     )
 
+    parser_download.configure_parser(sub_parsers)
     parser_train_fpn.configure_parser(sub_parsers)
     parser_train.configure_parser(sub_parsers)
 
