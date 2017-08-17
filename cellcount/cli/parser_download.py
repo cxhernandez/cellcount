@@ -52,6 +52,9 @@ def func(args, parser):
     urllib.request.urlretrieve(image_uri, image_fd.name, reporthook=update)
     urllib.request.urlretrieve(truth_uri, truth_fd.name, reporthook=update)
 
+    os.rename(image_fd.name, os.join(outdir, 'images.zip'))
+    os.rename(truth_fd.name, os.join(outdir, 'truth.zip'))
+
     print("Done!")
 
 
