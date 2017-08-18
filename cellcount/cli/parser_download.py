@@ -62,9 +62,11 @@ def func(args, parser):
                 full_path = os.path.join(root, name)
                 fn, ext = os.path.splitext(full_path)
                 if ext.lower().startswith('.tif'):
-                    if fn.find(args.exclude) == -1:
-                        os.remove(full_path)
-                    elif os.path.isfile(fn + ".jpg"):
+                    if args.exclude:
+                        if fn.find(args.exclude) == -1:
+                            os.remove(full_path)
+                            continue
+                    if os.path.isfile(fn + ".jpg"):
                         print("A JPEG already exists for %s." % name)
                     else:
                         outfile = fn + ".jpg"
