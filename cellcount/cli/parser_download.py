@@ -14,6 +14,7 @@ def func(args, parser):
     import urllib.request
     import tempfile
     import zipfile
+    from PIL import Image
     from progressbar import (ProgressBar, Percentage, Bar,
                              ETA, FileTransferSpeed)
 
@@ -55,11 +56,32 @@ def func(args, parser):
             with zipfile.ZipFile(tmp.name, 'r') as zf:
                 zf.extractall(outdir)
 
+    def jpg2tif(data_path):
+        for root, dirs, files in os.walk(data_path, topdown=False):
+            for name in files:
+                fn, ext = os.path.splitext(os.path.join(root, name))
+                if ext.lower().startswith('.tif'):
+                    if os.path.isfile(fn + ".jpg"):
+                        print("A JPEG already exists for %s." % name)
+                    # If a jpeg is *NOT* present, create one from the tiff.
+                    else:
+                        outfile = fn + ".jpg"
+                        try:
+                            im = Image.open(os.path.join(root, name))
+                            print("Generating JPEG for %s..." % name)
+                            im.thumbnail(im.size)
+                            im.save(outfile, "JPEG", quality=100)
+                        except Exception as e:
+                            print(e)
+
     print("Downloading imageset...")
     dl_unzip(image_uri, outdir, update)
 
     print("Downloading ground truth set...")
     dl_unzip(truth_uri, outdir, update)
+
+    print("Converting to JPEG...")
+    jpg2tif(outdir)
 
     print("Done!")
 
