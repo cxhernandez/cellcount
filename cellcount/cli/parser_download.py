@@ -52,7 +52,7 @@ def func(args, parser):
         with tempfile.NamedTemporaryFile() as tmp:
             urllib.request.urlretrieve(uri, tmp.name,
                                        reporthook=reporthook)
-            print('Extracting...')
+            print("\nExtracting...")
             with zipfile.ZipFile(tmp.name, 'r') as zf:
                 zf.extractall(outdir)
 
