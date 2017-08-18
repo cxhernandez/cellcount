@@ -29,8 +29,8 @@ def func(args, parser):
     gpu_dtype = torch.cuda.FloatTensor
     transform = T.Compose([T.Scale((256)), T.RandomHorizontalFlip(), T.ToTensor()])
 
-    train_data = ImageWithCount(join(BBBC, 'BBBC005_v1_images/'),
-                                transform=transform)
+    image_dir = glob(join(BBBC, '*images/'))[0]
+    train_data = ImageWithCount(image_dir, transform=transform)
 
     loader_train = DataLoader(train_data, batch_size=BATCH_SIZE,
                               sampler=ChunkSampler(NUM_TRAIN, 0))
