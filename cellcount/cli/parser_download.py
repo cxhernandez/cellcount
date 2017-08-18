@@ -1,9 +1,12 @@
 from argparse import ArgumentDefaultsHelpFormatter
 
+BROAD_URL = "https://data.broadinstitute.org/bbbc/"
 DEFAULTS = {
     "bbbc005": {
-        "images": "https://data.broadinstitute.org/bbbc/BBBC005/BBBC005_v1_images.zip",
-        "truth": "https://data.broadinstitute.org/bbbc/BBBC005/BBBC005_v1_ground_truth.zip",
+        "images":
+            BROAD_URL + "BBBC005/BBBC005_v1_images.zip",
+        "truth":
+            BROAD_URL + "BBBC005/BBBC005_v1_ground_truth.zip",
     }
 }
 

@@ -28,7 +28,9 @@ def func(args, parser):
     NUM_VAL = 1000
     BATCH_SIZE = args.batch_size
     gpu_dtype = torch.cuda.FloatTensor
-    transform = T.Compose([T.Scale((256)), T.RandomHorizontalFlip(), T.ToTensor()])
+    transform = T.Compose([T.Scale((256)),
+                           T.RandomHorizontalFlip(),
+                           T.ToTensor()])
 
     image_dir = glob(join(BBBC, '*images/'))[0]
     train_data = ImageWithCount(image_dir, transform=transform)
