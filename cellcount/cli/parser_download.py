@@ -56,7 +56,7 @@ def func(args, parser):
             with zipfile.ZipFile(tmp.name, 'r') as zf:
                 zf.extractall(outdir)
 
-    def jpg2tif(data_path):
+    def tif2jpg(data_path):
         for root, dirs, files in os.walk(data_path, topdown=False):
             for name in files:
                 full_path = os.path.join(root, name)
@@ -85,7 +85,7 @@ def func(args, parser):
     dl_unzip(truth_uri, outdir, update)
 
     print("Converting to JPEG...")
-    jpg2tif(outdir)
+    tif2jpg(outdir)
 
     print("Done!")
 
