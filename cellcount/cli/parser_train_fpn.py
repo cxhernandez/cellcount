@@ -26,7 +26,7 @@ def func(args, parser):
     gpu_dtype = torch.cuda.FloatTensor
 
     train_data = ImageWithMask(join(BBBC, 'BBBC005_v1_ground_truth/'))
-    train_data.imgs = [(join(BBBC, 'BBBC005_v1_images/jpg/%s') % basename(i), i)
+    train_data.imgs = [(join(BBBC, 'BBBC005_v1_images/%s') % basename(i), i)
                        for i, _ in train_data.imgs]
 
     loader_train = DataLoader(train_data, batch_size=BATCH_SIZE,

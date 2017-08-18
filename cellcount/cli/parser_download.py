@@ -59,7 +59,8 @@ def func(args, parser):
     def jpg2tif(data_path):
         for root, dirs, files in os.walk(data_path, topdown=False):
             for name in files:
-                fn, ext = os.path.splitext(os.path.join(root, name))
+                full_path = os.path.join(root, name)
+                fn, ext = os.path.splitext(full_path)
                 if ext.lower().startswith('.tif'):
                     if os.path.isfile(fn + ".jpg"):
                         print("A JPEG already exists for %s." % name)
@@ -67,10 +68,11 @@ def func(args, parser):
                     else:
                         outfile = fn + ".jpg"
                         try:
-                            im = Image.open(os.path.join(root, name))
+                            im = Image.open(full_path)
                             print("Generating JPEG for %s..." % name)
                             im.thumbnail(im.size)
                             im.save(outfile, "JPEG", quality=100)
+                            os.remove(full_path)
                         except Exception as e:
                             print(e)
 
