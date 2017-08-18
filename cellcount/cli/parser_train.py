@@ -4,6 +4,7 @@ from argparse import ArgumentDefaultsHelpFormatter
 def func(args, parser):
     from os.path import join, isfile
     from collections import OrderedDict
+    from glob import glob
 
     import torch
     import torch.optim as optim
