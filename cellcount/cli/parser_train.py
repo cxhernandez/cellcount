@@ -4,6 +4,7 @@ from argparse import ArgumentDefaultsHelpFormatter
 def func(args, parser):
     from os.path import join, isfile
     from collections import OrderedDict
+    from glob import glob
 
     import torch
     import torch.optim as optim
@@ -27,10 +28,12 @@ def func(args, parser):
     NUM_VAL = 1000
     BATCH_SIZE = args.batch_size
     gpu_dtype = torch.cuda.FloatTensor
-    transform = T.Compose([T.Scale((256)), T.RandomHorizontalFlip(), T.ToTensor()])
+    transform = T.Compose([T.Scale((256)),
+                           T.RandomHorizontalFlip(),
+                           T.ToTensor()])
 
-    train_data = ImageWithCount(join(BBBC, 'BBBC005_v1_images/'),
-                                transform=transform)
+    image_dir = glob(join(BBBC, '*images/'))[0]
+    train_data = ImageWithCount(image_dir, transform=transform)
 
     loader_train = DataLoader(train_data, batch_size=BATCH_SIZE,
                               sampler=ChunkSampler(NUM_TRAIN, 0))

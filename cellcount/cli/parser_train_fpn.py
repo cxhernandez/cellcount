@@ -3,6 +3,7 @@ from argparse import ArgumentDefaultsHelpFormatter
 
 def func(args, parser):
     from os.path import basename, join, isfile
+    from glob import glob
 
     import torch
     import torch.optim as optim
@@ -25,8 +26,11 @@ def func(args, parser):
     BATCH_SIZE = args.batch_size
     gpu_dtype = torch.cuda.FloatTensor
 
-    train_data = ImageWithMask(join(BBBC, 'BBBC005_v1_ground_truth/'))
-    train_data.imgs = [(join(BBBC, 'BBBC005_v1_images/jpg/%s') % basename(i), i)
+    image_dir = glob(join(BBBC, '*images/'))[0]
+    truth_dir = glob(join(BBBC, '*ground_truth/'))[0]
+
+    train_data = ImageWithMask(image_dir)
+    train_data.imgs = [(join(truth_dir, basename(i)), i)
                        for i, _ in train_data.imgs]
 
     loader_train = DataLoader(train_data, batch_size=BATCH_SIZE,
