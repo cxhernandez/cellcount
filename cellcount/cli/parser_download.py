@@ -4,7 +4,6 @@ DEFAULTS = {
     "bbbc005": {
         "images": "https://data.broadinstitute.org/bbbc/BBBC005/BBBC005_v1_images.zip",
         "truth": "https://data.broadinstitute.org/bbbc/BBBC005/BBBC005_v1_ground_truth.zip",
-        "outdir": "data/bbbc005/"
     }
 }
 
@@ -20,11 +19,11 @@ def func(args, parser):
     dataset, outdir = args.dataset, args.outdir
 
     if dataset and dataset.lower() in DEFAULTS.keys():
-        image_uri = DEFAULTS[args.dataset]['images']
-        truth_uri = DEFAULTS[args.dataset]['truth']
-        outdir = outdir or DEFAULTS[dataset]['outdir']
-        if not os.path.exists('data'):
-            os.makedirs('data')
+        image_uri = DEFAULTS[dataset]['images']
+        truth_uri = DEFAULTS[dataset]['truth']
+        outdir = outdir or os.join('data', dataset)
+        if not os.path.exists(outdir):
+            os.makedirs(outdir)
     elif args.dataset not in DEFAULTS.keys():
         parser.error("Dataset %s unknown. Valid choices are: %s" %
                      (dataset, ", ".join(DEFAULTS.keys())))
