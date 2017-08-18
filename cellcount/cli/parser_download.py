@@ -21,7 +21,7 @@ def func(args, parser):
     if dataset and dataset.lower() in DEFAULTS.keys():
         image_uri = DEFAULTS[dataset]['images']
         truth_uri = DEFAULTS[dataset]['truth']
-        outdir = outdir or os.join('data', dataset)
+        outdir = outdir or os.path.join('data', dataset)
         if not os.path.exists(outdir):
             os.makedirs(outdir)
     elif args.dataset not in DEFAULTS.keys():
