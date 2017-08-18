@@ -13,6 +13,7 @@ def func(args, parser):
     import sys
     import urllib.request
     import tempfile
+    import zipfile
     from progressbar import (ProgressBar, Percentage, Bar,
                              ETA, FileTransferSpeed)
 
@@ -36,8 +37,6 @@ def func(args, parser):
         parser.error("You must provide an --outdir")
         sys.exit(1)
 
-    image_fd = tempfile.NamedTemporaryFile()
-    truth_fd = tempfile.NamedTemporaryFile()
     progress = ProgressBar(widgets=[Percentage(), ' ', Bar(), ' ', ETA(),
                                     ' ', FileTransferSpeed()])
 
@@ -47,12 +46,20 @@ def func(args, parser):
             progress.start()
         progress.update(min(count * blockSize, totalSize))
 
-    print('Downloading Dataset...')
-    urllib.request.urlretrieve(image_uri, image_fd.name, reporthook=update)
-    urllib.request.urlretrieve(truth_uri, truth_fd.name, reporthook=update)
+    def dl_unzip(uri, outdir, reporthook):
 
-    os.rename(image_fd.name, os.path.join(outdir, 'images.zip'))
-    os.rename(truth_fd.name, os.path.join(outdir, 'truth.zip'))
+        with tempfile.NamedTemporaryFile() as tmp:
+            urllib.request.urlretrieve(uri, tmp.name,
+                                       reporthook=reporthook)
+            print('Extracting...')
+            with zipfile.ZipFile(tmp.name, 'r') as zf:
+                zf.extractall(outdir)
+
+    print("Downloading imageset...")
+    dl_unzip(image_uri, outdir, update)
+
+    print("Downloading ground truth set...")
+    dl_unzip(truth_uri, outdir, update)
 
     print("Done!")
 
