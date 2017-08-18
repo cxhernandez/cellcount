@@ -62,9 +62,10 @@ def func(args, parser):
                 full_path = os.path.join(root, name)
                 fn, ext = os.path.splitext(full_path)
                 if ext.lower().startswith('.tif'):
-                    if os.path.isfile(fn + ".jpg"):
+                    if fn.find(args.exclude) == -1:
+                        os.remove(full_path)
+                    elif os.path.isfile(fn + ".jpg"):
                         print("A JPEG already exists for %s." % name)
-                    # If a jpeg is *NOT* present, create one from the tiff.
                     else:
                         outfile = fn + ".jpg"
                         try:
@@ -73,6 +74,7 @@ def func(args, parser):
                             im.thumbnail(im.size)
                             im.save(outfile, "JPEG", quality=100)
                             os.remove(full_path)
+
                         except Exception as e:
                             print(e)
 
@@ -95,4 +97,5 @@ def configure_parser(sub_parsers):
     p.add_argument('--dataset', type=str,
                    help="Dataset name", choices=DEFAULTS.keys(), required=True)
     p.add_argument('-o', '--outdir', type=str, help='Output directory name')
+    p.add_argument('-e', '--exclude', type=str, help='exclude')
     p.set_defaults(func=func)
