@@ -23,9 +23,9 @@ def tv_loss(img, tv_weight=1E-6):
     return tv_weight * torch.sum((f - g) ** 2. + (f - h) ** 2.)
 
 
-def bloss(x, lv, y, eps=1E-6):
-    t = nn.Threshold(-6., 0.)
-    return torch.mean((torch.abs(y - x)) / (2. * torch.exp(t(lv))) + t(lv))
+def bloss(x, lv, y, log_eps=-6.):
+    t = nn.Threshold(log_eps, 0.)
+    return torch.mean(((y - x) ** 2.) / (2. * torch.exp(t(lv))) + t(lv))
 
 
 def fpn_loss(x, y):
