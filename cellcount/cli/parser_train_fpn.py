@@ -33,11 +33,11 @@ def func(args, parser):
     
     def assign_gt(fn):
         flags = fn.split('_')
-        flags[1] = 'A' + flags[1][:1]
+        flags[1] = 'A' + flags[1][1:]
         flags[3] = 'F1'
         return '_'.join(flags)
     
-    train_data.imgs = [(join(truth_dir, assign_gt(basename(i))), i)
+    train_data.imgs = [(i, join(truth_dir, assign_gt(basename(i))))
                        for i, _ in train_data.imgs]
 
     loader_train = DataLoader(train_data, batch_size=BATCH_SIZE,
@@ -54,7 +54,7 @@ def func(args, parser):
     if args.cont and isfile('fpn_checkpoint.pth.tar'):
         print('Continuing from previous checkpoint...')
         checkpoint = torch.load('fpn_model_best.pth.tar')
-        fpn.load_state_dict(checkpoint['encoder'])
+        fpn.load_state_dict(checkpoint['fpn'])
         optimizer = optim.Adam(fpn.parameters(), lr=lr)
         optimizer.load_state_dict(checkpoint['optimizer'])
         best_loss = checkpoint['avg_val_loss']
