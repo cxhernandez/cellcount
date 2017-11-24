@@ -30,7 +30,14 @@ def func(args, parser):
     truth_dir = glob(join(BBBC, '*ground_truth/'))[0]
 
     train_data = ImageWithMask(image_dir)
-    train_data.imgs = [(join(truth_dir, basename(i)), i)
+    
+    def assign_gt(fn):
+        flags = fn.split('_')
+        flags[1][0] = 'A'
+        flags[3] = 'F1'
+        return '_'.join(pieces)
+    
+    train_data.imgs = [(join(truth_dir, assign_gt(basename(i))), i)
                        for i, _ in train_data.imgs]
 
     loader_train = DataLoader(train_data, batch_size=BATCH_SIZE,
