@@ -136,6 +136,8 @@ def push_epoch_image(x_var, y_var, model, vis, epoch):
         canvas[1] = means[i].cpu().data.numpy().repeat(3, 0)
         canvas[1] /= canvas[1].max()
         canvas[2] = torch.exp(lvs[i]).cpu().data.numpy().repeat(3, 0)
+        canvas[2] /= canvas[2].max()
+        canvas = np.nan_to_num(canvas)
         vis.images(canvas, opts={'title': 'Epoch %s' % epoch})
 
 
@@ -160,6 +162,7 @@ def push_epoch_image_count(x_var, y_var, model, vis, epoch):
         canvas[2] = torch.exp(lvs[i]).cpu().data.numpy().repeat(3, 0)
         canvas[3, 0, :, :] = resize(saliency[i]).cpu().data.numpy()
         canvas[3] /= canvas[3].max()
+        canvas = np.nan_to_num(canvas)
         message = 'I think this image has %.4f ± %.4f cell(s). Truth is %s cell(s).'
         vis.images(canvas,
                    opts={'title': 'Epoch %s:' % epoch,
