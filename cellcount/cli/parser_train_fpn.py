@@ -33,9 +33,9 @@ def func(args, parser):
     
     def assign_gt(fn):
         flags = fn.split('_')
-        flags[1][0] = 'A'
+        flags[1] = 'A' + flags[1][:1]
         flags[3] = 'F1'
-        return '_'.join(pieces)
+        return '_'.join(flags)
     
     train_data.imgs = [(join(truth_dir, assign_gt(basename(i))), i)
                        for i, _ in train_data.imgs]
