@@ -18,11 +18,9 @@ def func(args, parser):
     from cellcount.losses import fpn_loss
 
     if args.display:
-        vis = visdom.Visdom(port=8080)
+        vis = visdom.Visdom(port=8097)
 
     BBBC = args.dataset
-    NUM_TRAIN = 480
-    NUM_VAL = 120
     BATCH_SIZE = args.batch_size
     gpu_dtype = torch.cuda.FloatTensor
 
@@ -39,6 +37,9 @@ def func(args, parser):
     
     train_data.imgs = [(i, join(truth_dir, assign_gt(basename(i))))
                        for i, _ in train_data.imgs]
+    
+    NUM_TRAIN = len(train_data.imgs) // 2
+    NUM_VAL = len(train_data.imgs) - NUM_TRAIN
 
     loader_train = DataLoader(train_data, batch_size=BATCH_SIZE,
                               sampler=ChunkSampler(NUM_TRAIN, 0))
