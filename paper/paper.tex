@@ -20,11 +20,11 @@
 % If you comment hyperref and then uncomment it, you should delete
 % egpaper.aux before re-running latex.  (Or just hit 'q' on the first latex
 % run, let it finish, and you should be clear).
-\usepackage[breaklinks=true, bookmarks=false]{hyperref}
+\usepackage{hyperref}
 
 \cvprfinalcopy % *** Uncomment this line for the final submission
 
-\def\cvprPaperID{****} % *** Enter the CVPR Paper ID here
+% \def\cvprPaperID{****} % *** Enter the CVPR Paper ID here
 \def\httilde{\mbox{\tt\raisebox{-.5ex}{\symbol{126}}}}
 
 % Pages are numbered in submission mode, and unnumbered in camera-ready
@@ -50,6 +50,11 @@ Mohammad M. Sultan\\
 Stanford University\\
 Stanford, CA\\
 {\tt\small msultan@stanford.edu}
+\and
+Vijay S, Pande\thanks{Corresponding author: pande@stanford.edu}\\
+Stanford University\\
+Stanford, CA\\
+{\tt\small pande@stanford.edu}
 }
 
 \maketitle
@@ -70,17 +75,17 @@ subsequent counting of cells in a given microscopy image.
 
 %%%%%%%%% BODY TEXT
 \section{Introduction}
-Cell segmentation and counting is a currently a laborious task commonly requiring the use of averages over
-many grid areas\cite{Abcam}. A scientist must manually estimate the number of cells in a local grid within an image.
+Cell segmentation and counting can be a laborious task that can take up valuable time from research.
+Typically, a scientist must manually estimate the number of cells in a local grid within an image~\cite{Abcam}.
 This is repeated at various grid points across the plate to get a mean density which is then used for estimating the
-total number of cells. These density-based techniques suffer from several drawbacks: firstly, they require a human
+total number of cells. These density-based techniques suffer from several drawbacks: first, they require a human
 to manually count the number of cells, introducing the possibility of subjective errors;
-secondly, they require a significant amount of time commitment, which could be better used for understanding, designing,
-and performing a new series of experiments; thirdly, it is not completely obvious how error bars can be obtained from such
+second, they require a significant amount of time commitment, which could be better used for understanding, designing,
+and performing a new series of experiments; finally, it is not completely obvious how error bars can be obtained from such
 an analysis. Although more sophisticated tools do exist for this task, they can be costly, rely on closed-source software,
 and do not address the issue of quantifying error.
 
-In short, we aim to automate the tedious process of counting cells and estimating uncertainty.
+Here, we aim to automate the tedious process of counting cells and estimating uncertainty using convolutional neural networks (CNNs).
 Our methodology takes on a two-step approach:
 
 \begin{itemize}\itemsep=2pt
@@ -88,46 +93,41 @@ Our methodology takes on a two-step approach:
 \item Cell counting: Approximate a count and confidence interval from the mask generated in the prior step.
 \end{itemize}
 
-In this manuscript, we aim to demonstrate how our approach leads to reliable cell counting in our benchmark dataset.
+We demonstrate how our approach leads to reliable cell counting in our benchmark dataset.
 Additionally, we discuss model interpretability and assess how our model learns to count.
-Finally, we discuss how incorporating uncertainty into the counting problem can improve model reliability and help
-identify failure cases.
+Finally, we discuss how incorporating uncertainty into the counting problem can improve model
+reliability and help identify possible failure cases.
 
 \section{Previous Work}
 
 \subsection{Segmentation}
 
-Segmentation using convolutional neural networks (CNNs) is an important problem in computer vision and
-significant progress has been made over the past few years \cite{deepmask, sharpmask, fastrcnn, fasterrcnn, fpn2016, maskrcnn2017}.
+Segmentation using CNNs is an important problem in computer vision and
+significant progress has been made over the past few years~\cite{deepmask, sharpmask, fastrcnn, fasterrcnn, fpn2016, maskrcnn2017}.
 Of particular note is the Mask-RCNN algorithm designed by Facebook AI Research (FAIR), which represents the current state-of-the-art
 in the field \cite{maskrcnn2017}. In their manuscript, He, et al. describe the use of feature pyramid networks (FPN) to generate
 smooth subject masks from a region of interest within an image \cite{maskrcnn2017, fpn2016}. The stated advantage of the FPN is
-that it down-samples the input image several times to learn features at different scales, which reportedly yields improved
-segmentation masks \cite{fpn2016}. As the accepted state-of-the art, we adopted this approach for our task of segmenting cells.
+that it down-samples the input image several times to learn features at different scales, which is reported to yield improved
+segmentation masks \cite{fpn2016}. As the accepted state-of-the art, we adopted this approach for the task of segmenting cells.
 
-However, we acknowledge that the task cell segmentation problem using CNNs has been addressed before.
-Van Valen, et al. developed DeepCell, which treats the segmentation task as classification problem on a
-pixel-by-pixel basis \cite{deepcell}. While successful at classifying different cell types in images,
-DeepCell produces fairly low-quality segmentation masks and does not aim to solve the cell counting problem;
-hence, our decision to tackle this challenge using the more state-of-the-art FPN instead.
+We note that cell segmentation using CNNs has been addressed at least once before in the literature. Van Valen, et al. developed DeepCell, which treats the segmentation task as classification problem on a pixel-by-pixel basis \cite{deepcell}. While successful at classifying different cell types in images, DeepCell produces fairly low-resolution segmentation masks and does not aim to solve the cell counting problem. Our approach is fundamentally different from DeepCell, as it leverages the FPN architecture for masking and cell counting.
 
 
 \subsection{Counting}
-To our knowledge, there is no state-of-the-art CNN architecture for counting cells in an image.
-Although, at least one attempt has been made to count object densities from an image using a CNN approach \cite{hydra}.
+Past work has attempted to count object densities from an image using a CNN \cite{hydra}.
 In their work, O\~{n}oro-Rubio and L\'{o}pez-Sastre generate density maps from multiple image
 patches, which they then sum over to calculate a final count. The authors report success in both counting
 vehicles and pedestrians in separate benchmarks. While their approach is similar to ours in spirit, our model
 predicts counts from high-contrast foreground masks, with no direct knowledge of the density.
-This is in-part due to our dataset's limitations, which only provides a binary foreground mask for select images.
+This is in-part due to our dataset's limitations (see Section \ref{sec:data}), which only provides a binary foreground mask for select images.
 
 
 \subsection{Uncertainty}
 
 Understanding the uncertainty within a model is a critical part of generating better-informed predictions.
 Unfortunately, deep neural networks are often used blindly and their limitations are ignored,
-which can lead to devastating consequences in practice \cite{bayes_uncer_2017}. In the case of counting cells,
-we often rely on such assays for everything from basic research to clinical trials.  The difference between
+which can lead to unwanted consequences in practice \cite{bayes_uncer_2017}. In the case of counting cells,
+we often rely on such assays for everything from basic research to clinical trials. The difference between
 having a statistically significant result or not, in somes cases, has potential to save lives.
 Quantifying error for these scientific problems can lead to improved statistical power and help resolve
 experimental phenotypes more easily.
@@ -141,11 +141,12 @@ By simply modifying the $L^2$ loss function to include an uncertainty term, $\si
 \end{equation}
 
 where $\hat{y}$ is the model prediction and $y$ is the ground truth.
-The aleatoric uncertainty of a model captures the uncertainty with respect to information which the training data cannot explain.
-In the idealize case of a complete training dataset and overfit model, the aleatoric uncertainty of a given model input would be zero.
-Therefore, learning the aleatoric uncertainty can yield some insights into what the model has never seen before at test-time
-and, therefore, suggestions to the experimentalist about what training examples might need to be added in future datasets.
 
+
+The aleatoric uncertainty of a model captures its uncertainty with respect to information which the training data cannot explain.
+In the idealize case of a complete training dataset and overfit model, the aleatoric uncertainty of a given model input would be zero.
+Therefore, learning the aleatoric uncertainty can yield some insights into what the model has not seen before at test-time
+and, therefore, can inform the experimentalist about what training examples may need to be added in future datasets.
 
 
 \section{Technical Approach}
@@ -154,20 +155,21 @@ and, therefore, suggestions to the experimentalist about what training examples 
 \begin{figure}[!h]
 \centering
 \includegraphics[width=0.5\textwidth]{fpn}
-\caption{A schematic of our Feature Pyramid Network for generating a foreground mask.}
+\caption{A schematic of our Feature Pyramid Network for generating a foreground mask. An input image is first passed through the down-sampling network (red) which successively convolves and scales  down the image by a factor of $2$ within each layer. Next, the down-sampled image is passed through an up-sampling network (blue), which also convolves the up-sampled image with its corresponding scaled down-sampled image in the red network, as denoted by the arrows. Finally, the output of the last layer in up-sampling network
+is passed through two separate networks: one that predicts the mean foreground masks and another that predicts its associated aleatoric uncertainty.}
 \label{fig1}
 \end{figure}
 
-We begin by using an FPN to segment cells from their background.
+We begin by using an FPN to segment foreground cells from their background.
 The FPN is a feature extraction network designed to build feature maps at multiple spatial scales \cite{fpn2016}.
 It is a computationally efficient algorithm that cross-links a convolved down-sampled image with its corresponding up-sampled image in the network, as shown in Fig. \ref{fig1}. The cross link uses a single 3x3 convolution layer with 128 filters and padding to preserve the down-sampled images' dimensions. 
 These cross-links enable the network to infer not only the relevant features at different scales but their spatial correlations as well.
 Finally each up-sampled layer, goes through three 3x3 convolutional layers: the first two have 256 filters and the final one only has one to produce a black-and-white foreground mask.
 All convolutional layers were proceeded by batch-normalization apart from the final output layer. The result is an arbitrary number of foreground masks at different scales from the original image.
-For our network, we scale each layer in the pyramid by a factor of $0.5$ and have a pyramid depth of 4 resulting in four output masks, the largest of which is half the size of the original image and is the mask used later by the counting network.
-A similar set of convolutional layers is used to generate the mask uncertainties, expressed as log-variances, as shown in Fig. \ref{fig1}.
+For our network, we down-sample each layer in the pyramid by a factor of $2$ and have a pyramid depth of 4 resulting in four output masks, the largest of which is half the size of the original image and is the mask used later by the counting network.
+A separate, yet similar, set of convolutional layers is used to generate the mask uncertainties, expressed as log-variances, as shown in Fig. \ref{fig1}.
 
-Each mask has its associated loss function, which contains two terms: 1) the aleatoric loss from the true foreground and 2) the total-variational (TV) loss. The aleatoric loss, as described before, behaves as an $L^2$ loss funtion with the addition of the mask uncertainty. The TV loss helps to smooth the foreground mask and remove any unwanted artifacts in a semi-unsupervised fashion \cite{tvloss}. The sum of these losses, for each scaled masked, is then used as the final loss for the FPN model.
+Each mask has its associated loss function, which contains two terms: 1) the aleatoric loss from the true foreground and 2) the total-variational (TV) loss. The aleatoric loss, as described before, behaves as an $L^2$ loss funtion with the addition of the mask uncertainty. The TV loss helps to smooth the foreground mask and remove any unwanted artifacts in a semi-unsupervised fashion~\cite{tvloss}. The sum of these losses, for each scaled masked, is then used as the final loss for the FPN model.
 
 
 
@@ -176,30 +178,21 @@ Each mask has its associated loss function, which contains two terms: 1) the ale
 \begin{figure}[!h]
 \centering
 \includegraphics[width=0.5\textwidth]{count}
-\caption{A schematic of our VGG-11-based network for counting cells from a foreground mask generated using the network from Figure \ref{fig1}}
+\caption{A schematic of our VGG-11-based network for counting cells from a foreground mask generated using the network from Figure \ref{fig1}. The predicted foreground mask is passed through the VGG-11 architecture, after which outputs into a pair of fully-connected layers that predict the expected cell count and its associated aleatoric uncertainty.}
 \label{fig2}
 \end{figure}
 
-For the counting network, we chose to look at the work of the Visual Geometry Group (VGG) \cite{vgg}.
-VGG networks are deep convolutional neural networks that, in the past, have won the ImageNet Challenge \cite{vgg}.
-We used the VGG-11 network which consists of 11 layers of two-dimensional convolutions with a filter size of 3x3 pixels.
-The number of filters vary from 64 to 512 as the network progresses. Furthermore, each convolution layer was also followed by a batch-normalization layer, which has been shown to improve training stability by preventing gradients from blowing up or going to zero \cite{batchnorm}. This was followed by a leaky ReLU and a max-pooling layers.
+For the counting network, we refer to the recent work of the Visual Geometry Group (VGG) in creating state-of-the-art, multi-purpose CNNs~\cite{vgg}. VGG networks are deep convolutional neural networks that, in the past, have won the ImageNet Challenge \cite{vgg}.
+We chose to use the VGG-11 network which consists of 11 layers of two-dimensional convolutions with a filter size of 3x3 pixels.
+The number of filters vary from 64 to 512 as the network progresses. Furthermore, each convolutional layer was also followed by a batch-normalization layer, which has been shown to improve training stability by preventing numerical instabilities in gradient calculations \cite{batchnorm}. This was followed by a leaky rectified linear unit (ReLU) activation and a max-pooling layers.
 
-The VGG-11 network was used as a feature extractor for the counting network. To generate the count prediction, we used three fully connected layers which were again separated by a batch-normalization layer and leaky ReLu. These fully connected layers had dimension 1024, 512, and 1, respectively, to end with a single float. The final layer included a ReLU layer to prevent the network from outputting negative counts. A similar fully connected network, with out the final ReLU layer, was used to predict the log-variance.
-A schematic of the final network is shown in Fig. \ref{fig2}.
+The VGG-11 network was used as a feature extractor for the counting network. To generate the count prediction, we used three fully connected layers which were again separated by a batch-normalization layer and leaky ReLu. These fully connected layers had dimension 1024, 512, and 1, respectively, to end with a single float. The final layer included a ReLU layer to prevent the network from outputting negative counts. A similar fully connected network, without the final ReLU layer, was used to predict the log-variance.
+A general schematic of the final network is shown in Fig. \ref{fig2}.
 
-
-\subsection{Uncertainty prediction for counting and segmentation}
-Most neural networks are not designed to assign associated error bars to their predicted values. This makes it difficult to assess the model's confidence in its prediction. Such uncertainties might be useful in evaluating a model's strengths and weaknesses. They can also help us ascertain a notion of what kind of data might be under-represented in our training ensemble.
-
-As mentioned previously, recent work in computer vision attempts to correct this by using a Bayesian deep learning frame work. With in this framework, the final loss is modified to include an additional learnable $\sigma$ parameter, as shown in Eq. \ref{eq_uncer} \cite{bayes_uncer_2017}.  
-
-Under this scheme, the model attempts to predict not only the correct output $y$ but also an associated log-variance, $\log{\sigma^2}$.
-The log-variance is calculated, as opposed to the variance, for numerical stability.
-Kendall and Gall show empirically that the aleatoric loss allowed the model to assign uncertainties to masking results \cite{bayes_uncer_2017}. More concretely, it allowed the model to assign higher uncertainties to areas of the mask where multiple objects were overlapping for example. We choose to include the uncertainty estimation during both the segmentation and counting. We believe this approach allows us to not only understand the weaknesses within our dataset and model but also provide accurate error estimates for downstream scientific analyses. 
 
 \section{Dataset}
-We used the \href{https://data.broadinstitute.org/bbbc/BBBC005/}{BBBC005 dataset} from the Broad Institute's Bioimage Benchmark Collection \cite{bbbc}. This dataset is a collection of 9,600 simulated microscopy images of stained cells. An example is shown in Fig. \ref{fig_broad}.
+\label{sec:data}
+We used the \href{https://data.broadinstitute.org/bbbc/BBBC005/}{BBBC005 dataset} from the Broad Institute's Bioimage Benchmark Collection \cite{bbbc}. This dataset is a collection of 9,600 simulated microscopy images of cell body-stained cells. An example is shown in Fig. \ref{fig_broad}.
 
 These images were simulated using the SIMCEP simulation platform for a given cell count with a clustering probability of 25\% and cell areas matched to the average cell areas of human U2OS cells \cite{simcep1, simcep2}.
 Focal blur was simulated by applying variable Gaussian filters to the images. Each image is 696 x 520 pixels encoded in the 8-bit Tagged Image File Format.
@@ -244,7 +237,7 @@ We pre-trained the FPN on 480 images with known foregrounds, out of a total 600 
 Training was done using the sum of $L^2$ loss functions with aleatoric uncertainties and TV losses for each output mask with its associated uncertainty, as described previously, and optimized using the ADAM optimizer with a learning rate of $1E-3$
 and batch size of 2.
 
-We found that the average mean-squared error (MSE) on 100 validation images converged to a value less than 0.1 after about 50 epochs.
+We found that the average mean-squared error (MSE) on 100 validation images converged to a value less than $0.1$ after about 50 epochs.
 Visual inspection of the masks over each epoch also corroborated this convergence, as masks looked nearly identical to the ground truth.
 Convergence of the uncertainty masks also occurred over the 50 epochs, evolving from uniform uncertainty over the image to outlines of the cell clusters.
 
@@ -256,7 +249,7 @@ Training was done using an $L^2$ loss function with aleatoric uncertainty for ce
 
 We found that the average validation MSE of the counts from 1,420 seperately generated masks converged after after 50 epochs
 to a final value of less than 11.2.
-After training, we found that our best model is able to achieve an $R^2$ value of .987, with an average $L^1$ error of 2.4 cells, on our test set. Furthermore, when considering the uncertainty predictions of our model, we find that over 80\% of ground truth counts fall within the model's predicted 95\% confidence interval on our 500 image test set. The maximum $L^1$ error never exceeded six cells during testing, which seems fairly accurate for the task.
+After training, we found that our best model is able to achieve an $R^2$ value of $.987$, with an average $L^1$ error of 2.4 cells, on our test set. Furthermore, when considering the uncertainty predictions of our model, we find that over 80\% of ground truth counts fall within the model's predicted 95\% confidence interval on our 500 image test set. The maximum $L^1$ error never exceeded six cells during testing, which seems fairly accurate for the task.
 
 Fig. \ref{fig_sal} and Fig. \ref{fig_sal2} demonstrate two random examples from our test set for which our model was successful.
 
@@ -319,9 +312,9 @@ The right-most image depicts the saliency map during counting. ({\bf a}) A test 
 
 \section{Discussion}
 We show that it is possible to design and train a CNN architecture to count cells in microscopy images
-and achieve relatively good accuracy. While a number of failures cases do arise, we believe that
+and achieve relatively good accuracy. While a number of failure cases do arise, we believe that
 better training data might help to overcome these shortcomings. Specifically, the BBBC005 lacked foreground masks
-for out-of-focus images, which could have helped greatly in improving countingperformance. However, some cases might
+for out-of-focus images, which could have helped greatly in improving counting performance. However, some cases might
 continue to persist, such as the issue of overlapping cells. At the moment, is unclear how to design a model to overcome
 such a difficulty, as overlapping cells can even confound human experts, but one solution might be
 to include the original image as additional input to the counting network. Another solution might be taking randomly
@@ -364,11 +357,22 @@ We also hope to integrate the ability for the research to submit their own train
 Open-source microscopy platforms like Foldscope might offer a great source of training images and community involvement to get started \cite{foldscope}.
 Ultimately, we believe cell counting should evolve from a tedious manual task to a fully automated process simply using relatively cheap digital imaging and computing resources. 
 
-\section{Acknowledgements}
-We would like to thank Bharath Ramsundar and Timnit Gebru for helpful conversations and feedback.
+\section*{Availability}
+Source code for this work is available under the open-source
+MIT license and is accessible on GitHub: \href{https://github.com/cxhernandez/cellcount}{https://github.com/cxhernandez/cellcount}.
 
-All code will be made publicly available on GitHub
-(\href{https://github.com/cxhernandez/cellcount}{https://github.com/cxhernandez/cellcount}).
+\section*{Acknowledgements}
+We would like to thank Bharath Ramsundar and Timnit Gebru for helpful conversations and feedback.
+We acknowledge funding from NIH grants U19 AI109662 and 2R01GM062868 for their support of this work.
+CXH acknowledges support from NSF GRFP (DGE-114747). 
+M.M.S would like to acknowledge support from the National Science Foundation grant NSF-MCB-0954714.
+This work used the XStream computational resource, supported by the National Science Foundation Major Research Instrumentation program (ACI-1429830), as well as the Sherlock cluster, maintained by the Stanford Research Computing Center.
+
+\section*{Disclosures}
+VSP is a consultant and SAB member of Schrodinger, LLC and Globavir, sits on the
+Board of Directors of Apeel Inc, Freenome Inc, Omada Health, Patient Ping,
+Rigetti Computing, and is a General Partner at Andreessen Horowitz.
+
 
 {\small
 \bibliographystyle{ieee}
