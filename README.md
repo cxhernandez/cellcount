@@ -2,7 +2,7 @@
 
 This is a Python 3.4+ project that uses PyTorch v0.4.1.
 
-## Usage
+## Example Usage
 
 After installing via `python setup.py install`, you can use the command-line commands to download an example BBBC dataset, train the feature pyramid network (FPN), and finally train the fulll end-to-end cell counting network:
 
