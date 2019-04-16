@@ -12,6 +12,8 @@ $ cell_count train_fpn --dataset path/to/bbbc005
 $ cell_count train --dataset path/to/bbbc005
 ```
 
+## Citing
+
 If you find this software useful for your work, please cite:
 
 ```bibtex
